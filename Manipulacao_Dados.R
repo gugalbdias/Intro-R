@@ -9,11 +9,15 @@ install.packages("tidyverse")
 install.packages("readr")
 install.packages("devtools")
 install.packages("ggplot2")
+install.packages("esquisse")
+install.packages("corrplot")
 library(tidyverse)
 library(conflicted)
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(esquisse)
+library(corrplot)
 
 conflicts_prefer(dplyr::filter)
 conflicts_prefer(dplyr::lag)
@@ -104,13 +108,28 @@ peru$'LE_Growth' <- c(NA, ((peru$'Life Expectancy'[-1]/peru$'Life Expectancy'[-n
 base <- bind_rows(dom_rep,peru)
 
 
-# Fazendo gráficos comparando os resultados: #
+### Fazendo gráficos comparando os resultados: ###
 
-base_agrupada <- base %>%
-  group_by(Country, Year)
+grafico_GPIA <- ggplot(base) + 
+  aes(x = Year, y = Var_GPIA, colour = Country, group = Country) +
+  geom_line() +
+  scale_color_hue(direction = 1) +
+  labs(x = "Ano", y = "Variância do GPIA em relação à um") +
+  theme_classic()
 
-ggplot(base_agrupada, aes(x= 'Var_GPIA', y= 'LE_Growth' , color=Country)) +
-  geom_point()+
-  labs(x='Variância em relação à um', y='Expectativa de vida')+
-  theme_classic()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+grafico_LE <- ggplot(base) +
+  aes(x = Year, y = LE_Growth, colour = Country, group = Country) +
+  geom_line() +
+  scale_color_hue(direction = 1) +
+  labs(x = "Ano", y = "Crescimento da Expectativa de Vida") +
+  theme_classic()
 
+
+### Calculando as correlações ###
+
+cor_base <- base %>% 
+  group_by(Country) %>% 
+  summarize(cor = cor(Var_GPIA, LE_Growth))
+
+# Plot the correlation matrix using corrplot
+corrplot(cor_base$cor, method = "number", type = "upper", tl.col = "black")
